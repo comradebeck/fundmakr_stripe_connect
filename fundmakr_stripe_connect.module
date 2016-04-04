@@ -1,0 +1,155 @@
+<?php
+
+// $Id$
+
+/**
+* @file
+* Provides Fundmakr and Stripe Connect integration.
+*/
+
+/**
+* Implements hook_menu().
+*/
+
+function fundmakr_stripe_connect_menu() {
+  $items = array();
+  $items['stripe/redirect'] = array(
+    'title' => 'Callback',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'fundmakr_stripe_connect_process_redirect',
+    'access callback' => TRUE,
+    'file' => 'fundmakr_stripe_connect.redirect.inc',
+  );
+  return $items;
+}
+
+/**
+* Implements hook_permission()
+*/
+
+function fundmakr_stripe_connect_permission() {
+	return array(
+		'view stripe tokens' => array(
+			'title' => t('View Stripe Tokens'),
+			'description' => t('View Stripe Access Token, User ID and Publishable Key'),
+		)
+	);
+}
+
+/**
+* Implements hook_field_info().
+*/
+
+function fundmakr_stripe_connect_field_info() {
+	return array(
+		'fundmakr_stripe_connect' => array(
+			'label' => t('Fundmakr Stripe Connect'),
+			'description' => t('Stores varchar(128) text of Stripe Connect tokens.'),
+			'settings' => array('max_length' => 128),
+			'no_ui' => TRUE,
+			'default_widget' => 'fundmakr_stripe_connect_widget',
+      		'default_formatter' => 'fundmakr_stripe_connect_formatter',
+		),
+	 );
+}
+
+
+/**
+* Implements hook_field_formatter_info()
+*/
+
+function fundmakr_stripe_connect_field_formatter_info() {
+	return array(
+		'fundmakr_stripe_connect_formatter' => array(
+			'label' => t('Fundmakr Stripe Connect Format'),
+			'field types' => array('fundmakr_stripe_connect'),
+		));
+}
+
+/**
+* Implements hook_field_formatter_view()
+*/
+
+function fundmakr_stripe_connect_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+	return $element = array();
+}
+
+/**
+* Implements hook_hook_field_widget_info()
+*/
+
+function fundmakr_stripe_connect_field_widget_info() {
+	return array(
+		'fundmakr_stripe_connect_widget' => array(
+			'label' => t('Fundmakr Stripe Connect Format'),
+			'field types' => array('fundmakr_stripe_connect'),
+		));
+}
+
+/**
+* Implements hook_field_widget_form()
+*/
+
+function fundmakr_stripe_connect_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
+
+	if (!empty($items[$delta]['stripe_access_token'])) {
+    $element['stripe_access_token'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Access Token',
+      '#access'  =>  user_access('view stripe fields'),
+      '#attributes' => array('disabled' => 'disabled'),
+      '#default_value' => isset($items[$delta]['stripe_access_token']) ? $items[$delta]['stripe_access_token'] : '',
+    );
+    $element['stripe_user_id'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Stripe User ID',
+      '#access'  =>  user_access('view stripe fields'),
+      '#attributes' => array('disabled' => 'disabled'),
+      '#default_value' => isset($items[$delta]['stripe_user_id']) ? $items[$delta]['stripe_user_id'] : '',
+    );
+    $element['stripe_publishable_key'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Stripe Publishable Key',
+      '#access'  =>  user_access('view stripe fields'),
+      '#attributes' => array('disabled' => 'disabled'),
+      '#default_value' => isset($items[$delta]['stripe_publishable_key']) ? $items[$delta]['stripe_publishable_key'] : '',
+    );
+    $element['stripe_customer_item'] = array(
+      '#title' => t('Stripe Account'),
+      '#type' => 'item',
+      '#markup' => '<p class="description">Your Stripe account is currently linked to Fundmakr to accept donations.</p><a href="https://manage.stripe.com/login" class="" target="_blank">Click here to login to your Stripe Account</a> <span class="glyphicon glyphicon-new-window"></span>',
+    );
+  }
+  else {
+    $stripe_button = '<img src="'.url(drupal_get_path('module', 'fundmakr_stripe_connect') . '/images/blue.png').'" />';
+    $path = 'https://connect.stripe.com/oauth/authorize?response_type=code&client_id='.variable_get('fundmakr_settings_client_id').'&scope=read_write&state=1234';
+    $link = l($stripe_button, $path, array('html' => TRUE));
+    $element['payments_account'] = array(
+      '#type' => 'container',
+      '#weight' => 10,
+    );
+    $element['stripe_customer_item'] = array(
+      '#title' => t('Stripe Account'),
+      '#type' => 'item',
+      '#markup' => $link,
+    );
+  }
+  return $element;
+}
+
+/*
+* We don't really need this but this is a code requirement
+*/
+
+function fundmakr_stripe_connect_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  return TRUE;
+}
+
+function fundmakr_stripe_connect_field_is_empty($item, $field) {
+  return FALSE;
+}
+
+
+
+

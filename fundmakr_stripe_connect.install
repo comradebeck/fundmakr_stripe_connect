@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the fundmakr_stripe_connect module.
+ */
+
+ /**
+ * Implements hook_install().
+ */
+
+function fundmakr_stripe_connect_install() {
+
+  // Clear the field info and field data caches.
+  field_cache_clear();
+
+  // only invoke instance creation for fundmakr_stripe_connect programmatically created fields.
+  field_associate_fields('fundmakr_stripe_connect');
+
+ 	if (!field_info_field('field_stripe_connect')) {
+    $field = array(
+        'field_name' => 'field_stripe_connect',
+        'type' => 'fundmakr_stripe_connect',
+    );
+
+    field_create_field($field);
+
+    // Create the instance on the bundle.
+    $instance = array(
+      'field_name' => 'field_stripe_connect',
+      'entity_type' => 'user',
+      'label' => 'Fundmakr Stripe Connect',
+      'bundle' => 'user',
+      // If you don't set the "required" property then the field wont be required by default.
+
+      'settings' => array(
+         // Here you inform either or not you want this field showing up on the registration form.
+          'user_register_form' => 0,
+      ),
+      'widget' => array(
+          'type' => 'textfield',
+      ),
+  	);
+
+    // Create the instance.
+	  field_create_instance($instance);
+	}
+}
+
+/**
+* Implements hook_field_schema().
+*/
+
+function fundmakr_stripe_connect_field_schema($field) {
+
+  // Create additional columns for field_stripe_connect
+  return array(
+    'columns' => array(
+      'stripe_access_token' => array( // Fundraiser's Stripe Access Token for Stripe API calls
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => FALSE,
+      ),
+      'stripe_user_id' => array( // Fundraiser's Stripe User ID
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => FALSE,
+      ),
+      'stripe_publishable_key' => array( // Fundraiser's Stripe Publishable Key for Stripe API calls
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => FALSE,
+      ),
+    ),
+  );
+}

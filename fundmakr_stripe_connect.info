@@ -1,0 +1,6 @@
+; $Id
+
+name = Fundmakr Stripe Connect
+description = Integrate a fundraiser's account to Stripe Connect feature for payment transaction on behalf of the fundraiser.
+package = Fundmakr
+core = "7.x"
